@@ -70,7 +70,7 @@ func main() {
 
 	// Iterate and Print
 	var (
-		skip_size             int64
+		seek_size             int64
 		current_seek_location int64
 
 		// ... for percentage calculation
@@ -86,13 +86,15 @@ func main() {
 
 		// ... skip to new location
 		if percent > 0 {
-			skip_size = int64(float64(1) / (percent / float64(100)) * float64(average_line_length) * 2)
+			seek_size = int64(float64(1) / (percent / float64(100)) * float64(average_line_length) * 2)
 		} else {
 			lines_left_in_file := (file_size - current_seek_location) / int64(average_line_length)
 			lines_still_needed := number - lines_read
-			skip_size = int64(float64(lines_still_needed) / float64(lines_left_in_file) * float64(average_line_length) * 2)
+			seek_size = int64(float64(1) / (float64(lines_still_needed) /
+				float64(lines_left_in_file)) * float64(average_line_length) * 2)
 		}
-		randomized_seek_size := rand.Int63n(skip_size)
+		log("seek_size: %d\n", seek_size)
+		randomized_seek_size := rand.Int63n(seek_size)
 		log("randomized_seek_size: %d\n", randomized_seek_size)
 		current_seek_location, err = rs.Seek(randomized_seek_size, 1)
 		if err != nil {
@@ -116,7 +118,7 @@ func main() {
 		}
 
 		// ... stop if done
-		if current_seek_location+skip_size > file_size {
+		if current_seek_location+seek_size > file_size {
 			break
 		}
 	}
